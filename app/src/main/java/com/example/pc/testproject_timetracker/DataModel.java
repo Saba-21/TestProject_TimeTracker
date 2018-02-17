@@ -4,7 +4,7 @@ package com.example.pc.testproject_timetracker;
  * Created by PC on 17-Feb-18.abc
  */
 
-class Data {
+class DataModel {
 
     private String Task;
 
@@ -12,7 +12,9 @@ class Data {
 
     private String Time;
 
-    Data(String task, String description, String time) {
+    DataModel(){}
+
+    DataModel(String task, String description, String time) {
         Task = task;
         Description = description;
         Time = time;
@@ -29,6 +31,18 @@ class Data {
 
     String getTime() {
         return Time;
+    }
+
+    void setTask(String task) {
+        Task = task;
+    }
+
+    void setDescription(String description) {
+        Description = description;
+    }
+
+    void setTime(String time) {
+        Time = time;
     }
 
 }

@@ -16,14 +16,14 @@ import java.util.List;
 class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder>{
 
 
-    private List<Data> listData;
+    private List<DataModel> listData;
 
-    RVAdapter(List<Data> listData) {
+    RVAdapter(List<DataModel> listData) {
         this.listData = listData;
     }
 
-    void addItem(Data listItem) {
-        this.listData.add(listItem);
+    void addItem(List<DataModel> listData) {
+        this.listData = listData;
         notifyDataSetChanged();
     }
 

@@ -4,14 +4,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class TimeTrackingActivity extends AppCompatActivity {
 
 
-    private List<Data> listData = new ArrayList<>();
+    private List<DataModel> listData = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,8 +19,9 @@ public class TimeTrackingActivity extends AppCompatActivity {
 
         RecyclerView recyclerView;
         RVAdapter rvAdapter;
+        DBHelper dbHelper;
 
-        listData.add(new Data("a", "b", "c"));
+        dbHelper = new DBHelper(getApplicationContext());
 
         recyclerView = findViewById(R.id.recycler_view_id);
         LinearLayoutManager llm = new LinearLayoutManager(getApplicationContext());
@@ -29,7 +29,11 @@ public class TimeTrackingActivity extends AppCompatActivity {
         rvAdapter = new RVAdapter(listData);
         recyclerView.setAdapter(rvAdapter);
 
-        rvAdapter.addItem(new Data("aa", "bb", "cc"));
+        //dbHelper.addData(new DataModel("aaaaaa", "bb", "cc"));
+
+        //dbHelper.dropData("aaaa");
+
+        rvAdapter.addItem(dbHelper.getData());
 
     }
 }
