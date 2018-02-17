@@ -4,5 +4,11 @@
     <string name="view_name_task">Task</string>
     <string name="view_name_description">Description</string>
     <string name="view_name_time">Time</string>
+    <string name="view_name_new_task">+</string>
+
+    <string name="dialog_view_name_head">Task Name</string>
+    <string name="dialog_view_name_body">Description</string>
+    <string name="dialog_view_start_button">Start Timer</string>
+    <string name="dialog_view_finish_button">Finish Task</string>
 
 </resources>

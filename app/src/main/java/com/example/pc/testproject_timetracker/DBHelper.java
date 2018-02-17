@@ -78,10 +78,11 @@ public class DBHelper extends SQLiteOpenHelper {
         db.insert(DBModel.TABLE_NAME, null, contentValues);
     }
 
-    void dropData(String task) {
+    void dropData() {
 
         SQLiteDatabase db = getWritableDatabase();
 
-        db.delete(DBModel.TABLE_NAME, DBModel.Task + " = ?", new String[]{task});
+        db.delete(DBModel.TABLE_NAME, "1", null);
     }
+
 }
