@@ -7,11 +7,11 @@
     android:background="@drawable/dialog_shape"
     android:gravity="center">
 
-    <EditText
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:hint="@string/view_name_time"
+        android:textSize="@dimen/text_view_size"
         android:id="@+id/timer"
         android:layout_marginBottom="@dimen/Dialog_view_margin"/>
     <TextView
