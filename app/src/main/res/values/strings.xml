@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TestProject_TimeTracker</string>
+
+    <string name="view_name_task">Task</string>
+    <string name="view_name_description">Description</string>
+    <string name="view_name_time">Time</string>
+
 </resources>
