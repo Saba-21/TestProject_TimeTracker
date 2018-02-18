@@ -1,6 +1,10 @@
 package com.example.pc.testproject_timetracker;
 
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,9 +16,14 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class TimeTrackingActivity extends AppCompatActivity{
 
+    private static final String ACTION_GET_TIME_FROM_SERVICE = "TimeToActivity";
+    private static final String ACTION_TELL_SERVICE_TO_STOP = "StopTheService";
+    private static final String KEY_TIME_TO_ACTIVITY = "TimeFromIntent";
+    private static final String ACTION_TELL_SERVICE_TO_START_TIMER = "StartTheServiceTimer";
     private Dialog firstDialog, secondDialog;
     private EditText taskView, descriptionView;
     private TextView timeView;
@@ -32,11 +41,30 @@ public class TimeTrackingActivity extends AppCompatActivity{
         setupDialog();
 
         dbHelper = new DBHelper(this);
+
         RecyclerView recyclerView;
         recyclerView = findViewById(R.id.recycler_view_id);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         rvAdapter = new RVAdapter(dbHelper.getData());
         recyclerView.setAdapter(rvAdapter);
+
+        IntentFilter intentFilter = new IntentFilter(ACTION_GET_TIME_FROM_SERVICE);
+        registerReceiver(activityReceiver, intentFilter);
+
+    }
+
+    BroadcastReceiver activityReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(ACTION_GET_TIME_FROM_SERVICE))
+                Toast.makeText(context, intent.getStringExtra(KEY_TIME_TO_ACTIVITY), Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(activityReceiver);
     }
 
     private void setupDialog(){
@@ -80,29 +108,48 @@ public class TimeTrackingActivity extends AppCompatActivity{
     }
 
     public void newTaskButton(View view){
+        startService(new Intent(this,TimerService.class));
         firstDialog.show();
     }
 
     public void startButton(View view) {
-        task = taskView.getText().toString();
-        taskView.getText().clear();
-        description = descriptionView.getText().toString();
-        descriptionView.getText().clear();
+        saveDataResetDialog();
         if (empty(task) && empty(description)) {
             firstDialog.cancel();
             secondDialog.show();
             run = true;
             timer();
+            sendStartBroadcast();
         }
     }
 
     public void finishButton(View view) {
+        sendStopBroadcast();
         run = false;
         String time = timeView.getText().toString();
         totalSeconds = 0;
         dbHelper.addData(new DataModel(task, description, time));
         rvAdapter.addItem(dbHelper.getData());
         secondDialog.cancel();
+    }
+
+    private void saveDataResetDialog(){
+        task = taskView.getText().toString();
+        taskView.getText().clear();
+        description = descriptionView.getText().toString();
+        descriptionView.getText().clear();
+    }
+
+    private void sendStartBroadcast(){
+        Intent intent = new Intent();
+        intent.setAction(ACTION_TELL_SERVICE_TO_START_TIMER);
+        sendBroadcast(intent);
+    }
+
+    private void sendStopBroadcast(){
+        Intent intent = new Intent();
+        intent.setAction(ACTION_TELL_SERVICE_TO_STOP);
+        sendBroadcast(intent);
     }
 
     private void timer(){
