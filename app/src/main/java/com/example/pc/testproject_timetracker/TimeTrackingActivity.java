@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,14 +17,15 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class TimeTrackingActivity extends AppCompatActivity{
 
     private static final String ACTION_GET_TIME_FROM_SERVICE = "TimeToActivity";
     private static final String ACTION_TELL_SERVICE_TO_STOP = "StopTheService";
+    private static final String ACTION_ASK_SERVICE_TIME = "AskServiceTime";
     private static final String KEY_TIME_TO_ACTIVITY = "TimeFromIntent";
-    private static final String ACTION_TELL_SERVICE_TO_START_TIMER = "StartTheServiceTimer";
+    private static final String KEY_TIMER = "KeyTimer", KEY_TASK = "KeyTask", KEY_DESC = "KeyDesc";
+    private static final String KEY_SHARED_PREFERENCE = "SharedPreferenceKey";
     private Dialog firstDialog, secondDialog;
     private EditText taskView, descriptionView;
     private TextView timeView;
@@ -31,7 +33,7 @@ public class TimeTrackingActivity extends AppCompatActivity{
     private RVAdapter rvAdapter;
     private DBHelper dbHelper;
     private int totalSeconds = 0;
-    private boolean run;
+    private boolean running = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,16 +41,15 @@ public class TimeTrackingActivity extends AppCompatActivity{
         setContentView(R.layout.activity_time_tracking);
         initView();
         setupDialog();
+        setupRecyclerView();
+        getTimerState();        //timer state and input data is saved in shared preferences
 
-        dbHelper = new DBHelper(this);
-
-        RecyclerView recyclerView;
-        recyclerView = findViewById(R.id.recycler_view_id);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        rvAdapter = new RVAdapter(dbHelper.getData());
-        recyclerView.setAdapter(rvAdapter);
-
-        IntentFilter intentFilter = new IntentFilter(ACTION_GET_TIME_FROM_SERVICE);
+        if (running) {      //activity gets timer data from service after its destruction while timer was running
+            sendTimeBroadcast();
+            timer();
+            secondDialog.show();
+        }
+        IntentFilter intentFilter = new IntentFilter(ACTION_GET_TIME_FROM_SERVICE);     //registering broadcast that service will send
         registerReceiver(activityReceiver, intentFilter);
 
     }
@@ -56,10 +57,16 @@ public class TimeTrackingActivity extends AppCompatActivity{
     BroadcastReceiver activityReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION_GET_TIME_FROM_SERVICE))
-                Toast.makeText(context, intent.getStringExtra(KEY_TIME_TO_ACTIVITY), Toast.LENGTH_SHORT).show();
+            if (intent.getAction().equals(ACTION_GET_TIME_FROM_SERVICE))        //listening broadcast that service will send with its timer data
+                totalSeconds = intent.getIntExtra(KEY_TIME_TO_ACTIVITY, 0);
         }
     };
+
+    @Override
+    protected void onStop() {       //save timer state and input data when activity is invisible
+        super.onStop();
+        saveTimerState();
+    }
 
     @Override
     public void onDestroy() {
@@ -67,10 +74,19 @@ public class TimeTrackingActivity extends AppCompatActivity{
         unregisterReceiver(activityReceiver);
     }
 
-    private void setupDialog(){
+    private void setupRecyclerView(){
+        dbHelper = new DBHelper(this);
+        RecyclerView recyclerView;
+        recyclerView = findViewById(R.id.recycler_view_id);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        rvAdapter = new RVAdapter(dbHelper.getData());
+        recyclerView.setAdapter(rvAdapter);
+    }
+
+    private void setupDialog(){             //dialog will space 2/3 of screen size
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        int width = metrics.widthPixels / 2;
+        int width =(metrics.widthPixels / 3)*2;
         int height = metrics.heightPixels / 2;
 
         WindowManager.LayoutParams params;
@@ -107,48 +123,64 @@ public class TimeTrackingActivity extends AppCompatActivity{
         timeView = secondDialog.findViewById(R.id.timer);
     }
 
-    public void newTaskButton(View view){
-        startService(new Intent(this,TimerService.class));
+    public void newTaskButton(View view){       //first dialog pop-up
         firstDialog.show();
     }
 
+    public void share(View view){               //sharing via mail
+
+    }
+
     public void startButton(View view) {
-        saveDataResetDialog();
-        if (empty(task) && empty(description)) {
+        getViewData();                          //get input data
+        if (!task.isEmpty() && !description.isEmpty()) {
             firstDialog.cancel();
             secondDialog.show();
-            run = true;
-            timer();
-            sendStartBroadcast();
+            running = true;                     //timer state
+            timer();                            //start timer
+            startTimerInBackground();           //start service
         }
     }
 
     public void finishButton(View view) {
         sendStopBroadcast();
-        run = false;
+        running = false;
         String time = timeView.getText().toString();
-        totalSeconds = 0;
         dbHelper.addData(new DataModel(task, description, time));
         rvAdapter.addItem(dbHelper.getData());
+        totalSeconds = 0;
         secondDialog.cancel();
     }
 
-    private void saveDataResetDialog(){
-        task = taskView.getText().toString();
-        taskView.getText().clear();
-        description = descriptionView.getText().toString();
-        descriptionView.getText().clear();
+    public void startTimerInBackground(){       //starting service
+        Intent intent = new Intent(this, TimerService.class);
+        startService(intent);
     }
 
-    private void sendStartBroadcast(){
+    public void saveTimerState(){           //saving timer state and input text
+        SharedPreferences.Editor editor = getSharedPreferences(KEY_SHARED_PREFERENCE, MODE_PRIVATE).edit();
+        editor.putBoolean(KEY_TIMER, running);
+        editor.putString(KEY_TASK,task);
+        editor.putString(KEY_DESC,description);
+        editor.apply();
+    }
+
+    public void getTimerState(){            //getting timer state and input text
+        SharedPreferences prefs = getSharedPreferences(KEY_SHARED_PREFERENCE, MODE_PRIVATE);
+        task = prefs.getString(KEY_TASK,"");
+        description = prefs.getString(KEY_DESC,"");
+        running = prefs.getBoolean(KEY_TIMER, false);
+    }
+
+    private void sendStopBroadcast(){       //service will send back timer data
         Intent intent = new Intent();
-        intent.setAction(ACTION_TELL_SERVICE_TO_START_TIMER);
+        intent.setAction(ACTION_TELL_SERVICE_TO_STOP);
         sendBroadcast(intent);
     }
 
-    private void sendStopBroadcast(){
+    private void sendTimeBroadcast(){       //service will stop itself
         Intent intent = new Intent();
-        intent.setAction(ACTION_TELL_SERVICE_TO_STOP);
+        intent.setAction(ACTION_ASK_SERVICE_TIME);
         sendBroadcast(intent);
     }
 
@@ -157,7 +189,7 @@ public class TimeTrackingActivity extends AppCompatActivity{
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if (run) {
+                if (running) {
                     int hours = totalSeconds / 3600;
                     int minutes = (totalSeconds % 3600) / 60;
                     int seconds = totalSeconds % 60;
@@ -170,7 +202,10 @@ public class TimeTrackingActivity extends AppCompatActivity{
         });
     }
 
-    private boolean empty(String text) {
-        return text.trim().length() > 0;
+    private void getViewData(){         //resets dialog window
+        task = taskView.getText().toString();
+        taskView.getText().clear();
+        description = descriptionView.getText().toString();
+        descriptionView.getText().clear();
     }
 }

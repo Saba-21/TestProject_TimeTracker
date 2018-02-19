@@ -1,5 +1,6 @@
 package com.example.pc.testproject_timetracker;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,45 +8,40 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
-import android.widget.Toast;
 
 public class TimerService extends Service {
 
     private static final String ACTION_GET_TIME_FROM_SERVICE = "TimeToActivity";
     private static final String ACTION_TELL_SERVICE_TO_STOP = "StopTheService";
+    private static final String ACTION_ASK_SERVICE_TIME = "AskServiceTime";
     private static final String KEY_TIME_TO_ACTIVITY = "TimeFromIntent";
-    private static final String ACTION_TELL_SERVICE_TO_START_TIMER = "StartTheServiceTimer";
-    private boolean run;
-    private int totalSeconds = 0;
+    private int totalSeconds;
 
     BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if (intent.getAction().equals(ACTION_TELL_SERVICE_TO_START_TIMER)){
-                run = true;
-                timer();
-            }
-            if (intent.getAction().equals(ACTION_TELL_SERVICE_TO_STOP)) {
-                run = false;
+            if (intent.getAction().equals(ACTION_ASK_SERVICE_TIME)) {
                 Intent broadcastIntent = new Intent();
-                broadcastIntent.putExtra(KEY_TIME_TO_ACTIVITY, Integer.toString(totalSeconds));
+                broadcastIntent.putExtra(KEY_TIME_TO_ACTIVITY, totalSeconds);
                 broadcastIntent.setAction(ACTION_GET_TIME_FROM_SERVICE);
                 sendBroadcast(broadcastIntent);
+            }
+
+            if (intent.getAction().equals(ACTION_TELL_SERVICE_TO_STOP)) {
                 stopSelf();
             }
         }
     };
 
     private void timer(){
+        totalSeconds = 0;
         final Handler handler = new Handler();
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if (run) {
-                    totalSeconds++;
-                    handler.postDelayed(this, 1000);
-                }
+                totalSeconds++;
+                handler.postDelayed(this, 1000);
             }
         });
     }
@@ -54,13 +50,16 @@ public class TimerService extends Service {
     public IBinder onBind(Intent arg0) {
         return null;
     }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        startForeground(1, new Notification());     //prevent service from being killed after activity destruction
+        timer();
 
         IntentFilter intentFilter = new IntentFilter(ACTION_TELL_SERVICE_TO_STOP);
         registerReceiver(serviceReceiver, intentFilter);
-        intentFilter = new IntentFilter(ACTION_TELL_SERVICE_TO_START_TIMER);
+        intentFilter = new IntentFilter(ACTION_ASK_SERVICE_TIME);
         registerReceiver(serviceReceiver, intentFilter);
     }
 

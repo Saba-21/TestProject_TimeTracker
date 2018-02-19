@@ -5,6 +5,7 @@
     <string name="view_name_description">Description</string>
     <string name="view_name_time">Time</string>
     <string name="view_name_new_task">+</string>
+    <string name="view_name_share">Share</string>
 
     <string name="dialog_view_name_head">Task Name</string>
     <string name="dialog_view_name_body">Description</string>

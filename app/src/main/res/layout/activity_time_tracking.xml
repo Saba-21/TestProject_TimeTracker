@@ -16,13 +16,13 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:text="@string/view_name_task"
             android:textColor="@color/headBlack"/>
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="4"
             android:text="@string/view_name_description"
             android:textColor="@color/headBlack"/>
         <TextView
@@ -40,13 +40,26 @@
         android:scrollbars="vertical" >
     </android.support.v7.widget.RecyclerView>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="newTaskButton"
-        android:text="@string/view_name_new_task"
-        android:layout_gravity="end"
-        android:textSize="@dimen/text_view_size"
-        android:padding="@dimen/dialog_view_padding"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="newTaskButton"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="@string/view_name_new_task"
+            android:textSize="@dimen/text_view_size"
+            android:padding="@dimen/dialog_view_padding"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="share"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="@string/view_name_share"
+            android:padding="@dimen/dialog_view_padding"/>
+    </RelativeLayout>
 
 </LinearLayout>
