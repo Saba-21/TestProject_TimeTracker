@@ -3,7 +3,7 @@
     package="com.example.pc.testproject_timetracker">
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -12,7 +12,7 @@
         <activity android:name=".TimeTrackingActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -20,7 +20,8 @@
         <service
             android:name=".TimerService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="false">
+        </service>
     </application>
 
 </manifest>

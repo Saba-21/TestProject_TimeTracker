@@ -42,25 +42,25 @@ public class DBHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = getReadableDatabase();
 
-        Cursor cursor = db.query(DBModel.TABLE_NAME,
-                new String[]{DBModel.Task,
-                        DBModel.Description,
-                        DBModel.Time},
-                null, null, null, null, null);
+        //try with resources - it will close cursor automatically
+       try( Cursor cursor = db.query(DBModel.TABLE_NAME,
+               new String[]{DBModel.Task, DBModel.Description, DBModel.Time},
+                null, null, null, null, null)) {
 
-        cursor.moveToFirst();
+           cursor.moveToFirst();
 
-        do {
-            DataModel dataModel = new DataModel();
+           do {
+               DataModel dataModel = new DataModel();
 
-            if (cursor.getCount()>0) {
-                dataModel.setTask(cursor.getString(cursor.getColumnIndex(DBModel.Task)));
-                dataModel.setDescription(cursor.getString(cursor.getColumnIndex(DBModel.Description)));
-                dataModel.setTime(cursor.getString(cursor.getColumnIndex(DBModel.Time)));
-            }
-            data.add(dataModel);
+               if (cursor.getCount() > 0) {
+                   dataModel.setTask(cursor.getString(cursor.getColumnIndex(DBModel.Task)));
+                   dataModel.setDescription(cursor.getString(cursor.getColumnIndex(DBModel.Description)));
+                   dataModel.setTime(cursor.getString(cursor.getColumnIndex(DBModel.Time)));
+               }
+               data.add(dataModel);
 
-        } while (cursor.moveToNext());
+           } while (cursor.moveToNext());
+       }
 
         return data;
     }
@@ -76,13 +76,6 @@ public class DBHelper extends SQLiteOpenHelper {
         contentValues.put(DBModel.Time, dataModel.getTime());
 
         db.insert(DBModel.TABLE_NAME, null, contentValues);
-    }
-
-    void dropData() {
-
-        SQLiteDatabase db = getWritableDatabase();
-
-        db.delete(DBModel.TABLE_NAME, "1", null);
     }
 
 }

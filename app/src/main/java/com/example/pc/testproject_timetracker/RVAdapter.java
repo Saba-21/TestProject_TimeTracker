@@ -35,7 +35,7 @@ class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder>{
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if (position % 2 == 0)
+        if (position % 2 == 0)                      //items will have different background from its adjoining items
             holder.itemLayout.setBackgroundResource(R.color.itemGrey);
         holder.Task.setText(listData.get(position).getTask());
         holder.Description.setText(listData.get(position).getDescription());

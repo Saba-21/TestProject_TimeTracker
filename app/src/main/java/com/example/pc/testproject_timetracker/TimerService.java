@@ -20,16 +20,16 @@ public class TimerService extends Service {
     BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
-            if (intent.getAction().equals(ACTION_ASK_SERVICE_TIME)) {
-                Intent broadcastIntent = new Intent();
-                broadcastIntent.putExtra(KEY_TIME_TO_ACTIVITY, totalSeconds);
-                broadcastIntent.setAction(ACTION_GET_TIME_FROM_SERVICE);
-                sendBroadcast(broadcastIntent);
-            }
-
-            if (intent.getAction().equals(ACTION_TELL_SERVICE_TO_STOP)) {
-                stopSelf();
+            if (intent.getAction()!=null) {
+                if (intent.getAction().equals(ACTION_ASK_SERVICE_TIME)) {       //listen broadcast to send timer data
+                    Intent broadcastIntent = new Intent();
+                    broadcastIntent.putExtra(KEY_TIME_TO_ACTIVITY, totalSeconds);
+                    broadcastIntent.setAction(ACTION_GET_TIME_FROM_SERVICE);
+                    sendBroadcast(broadcastIntent);
+                }
+                if (intent.getAction().equals(ACTION_TELL_SERVICE_TO_STOP)) {       //listen broadcast to call stop
+                    stopSelf();
+                }
             }
         }
     };
@@ -56,7 +56,6 @@ public class TimerService extends Service {
         super.onCreate();
         startForeground(1, new Notification());     //prevent service from being killed after activity destruction
         timer();
-
         IntentFilter intentFilter = new IntentFilter(ACTION_TELL_SERVICE_TO_STOP);
         registerReceiver(serviceReceiver, intentFilter);
         intentFilter = new IntentFilter(ACTION_ASK_SERVICE_TIME);
