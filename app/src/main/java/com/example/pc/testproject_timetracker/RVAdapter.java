@@ -7,25 +7,17 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.List;
-
 /**
  * Created by PC on 17-Feb-18.abc
  */
 
 class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder>{
 
-
-    private List<DataModel> listData;
-
-    RVAdapter(List<DataModel> listData) {
-        this.listData = listData;
+    RVAdapter(PresenterImpl presenterImp) {
+        this.presenterImp = presenterImp;
     }
 
-    void addItem(List<DataModel> listData) {
-        this.listData = listData;
-        notifyDataSetChanged();
-    }
+    private PresenterImpl presenterImp;
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -35,19 +27,15 @@ class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder>{
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if (position % 2 == 0)                      //items will have different background from its adjoining items
-            holder.itemLayout.setBackgroundResource(R.color.itemGrey);
-        holder.Task.setText(listData.get(position).getTask());
-        holder.Description.setText(listData.get(position).getDescription());
-        holder.Time.setText(listData.get(position).getTime());
+        presenterImp.rowViewAtPosition(position, holder);
     }
 
     @Override
     public int getItemCount() {
-        return listData.size();
+        return presenterImp.getRowsCount();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder implements ViewHolderItem {
 
         private TextView Task, Description, Time;
         private LinearLayout itemLayout;
@@ -58,6 +46,27 @@ class RVAdapter extends RecyclerView.Adapter<RVAdapter.ViewHolder>{
             Description = itemView.findViewById(R.id.description);
             Time = itemView.findViewById(R.id.time);
             itemLayout = itemView.findViewById(R.id.item_layout);
+        }
+
+        @Override
+        public void setTaskText(String task) {
+            Task.setText(task);
+        }
+
+        @Override
+        public void setDescText(String desc) {
+            Description.setText(desc);
+        }
+
+        @Override
+        public void setTimeText(String time) {
+            Time.setText(time);
+        }
+
+        @Override
+        public void setBackColor( int pos) {
+            if (pos % 2 == 0)
+                itemLayout.setBackgroundResource(R.color.itemGrey);
         }
     }
 
